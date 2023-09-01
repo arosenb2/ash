@@ -152,6 +152,12 @@ defmodule Ash.MixProject do
             name: "Resource Validations",
             type: "Extension",
             target: "Ash.Registry"
+          },
+          %{
+            module: Ash.Reactor,
+            name: "Reactor integration",
+            type: "Extension",
+            target: "Reactor.Dsl"
           }
         ],
         mix_tasks: [
@@ -163,13 +169,14 @@ defmodule Ash.MixProject do
       groups_for_modules: [
         Extensions: [
           Ash.Api,
-          Ash.Resource,
           Ash.DataLayer.Ets,
           Ash.DataLayer.Mnesia,
           Ash.DataLayer.Simple,
           Ash.Notifier.PubSub,
           Ash.Policy.Authorizer,
-          Ash.Registry
+          Ash.Reactor,
+          Ash.Registry,
+          Ash.Resource
         ],
         Resources: [
           Ash.Api,
@@ -298,6 +305,7 @@ defmodule Ash.MixProject do
       {:stream_data, "~> 0.5"},
       {:telemetry, "~> 1.1"},
       {:plug, ">= 0.0.0", optional: true},
+      {:reactor, "~> 0.3 and >= 0.3.3", optional: true},
       # Dev/Test dependencies
       {:ex_doc, github: "elixir-lang/ex_doc", only: [:dev, :test], runtime: false},
       {:ex_check, "~> 0.12", only: [:dev, :test]},
@@ -312,6 +320,22 @@ defmodule Ash.MixProject do
   end
 
   defp aliases do
+    extensions =
+      Enum.join(
+        [
+          "Ash.Api.Dsl",
+          "Ash.DataLayer.Ets",
+          "Ash.DataLayer.Mnesia",
+          "Ash.Flow.Dsl",
+          "Ash.Notifier.PubSub",
+          "Ash.Policy.Authorizer",
+          "Ash.Reactor",
+          "Ash.Registry.Dsl",
+          "Ash.Resource.Dsl"
+        ],
+        ","
+      )
+
     [
       sobelow: "sobelow --skip",
       credo: "credo --strict",
@@ -321,12 +345,9 @@ defmodule Ash.MixProject do
         "ash.replace_doc_links",
         "spark.cheat_sheets_in_search"
       ],
-      "spark.cheat_sheets_in_search":
-        "spark.cheat_sheets_in_search --extensions Ash.Resource.Dsl,Ash.Api.Dsl,Ash.Flow.Dsl,Ash.Registry.Dsl,Ash.DataLayer.Ets,Ash.DataLayer.Mnesia,Ash.Notifier.PubSub,Ash.Policy.Authorizer",
-      "spark.formatter":
-        "spark.formatter --extensions Ash.Resource.Dsl,Ash.Api.Dsl,Ash.Flow.Dsl,Ash.Registry.Dsl,Ash.DataLayer.Ets,Ash.DataLayer.Mnesia,Ash.Notifier.PubSub,Ash.Policy.Authorizer",
-      "spark.cheat_sheets":
-        "spark.cheat_sheets --extensions Ash.Resource.Dsl,Ash.Api.Dsl,Ash.Flow.Dsl,Ash.Registry.Dsl,Ash.DataLayer.Ets,Ash.DataLayer.Mnesia,Ash.Notifier.PubSub,Ash.Policy.Authorizer"
+      "spark.cheat_sheets_in_search": "spark.cheat_sheets_in_search --extensions #{extensions}",
+      "spark.formatter": "spark.formatter --extensions #{extensions}",
+      "spark.cheat_sheets": "spark.cheat_sheets --extensions #{extensions}"
     ]
   end
 end
