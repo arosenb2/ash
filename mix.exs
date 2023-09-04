@@ -294,7 +294,7 @@ defmodule Ash.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:spark, "~> 1.1 and >= 1.1.20"},
+      {:spark, "~> 1.1 and >= 1.1.25"},
       {:ecto, "~> 3.7"},
       {:ets, "~> 0.8"},
       {:decimal, "~> 2.0"},
@@ -305,7 +305,7 @@ defmodule Ash.MixProject do
       {:stream_data, "~> 0.5"},
       {:telemetry, "~> 1.1"},
       {:plug, ">= 0.0.0", optional: true},
-      {:reactor, "~> 0.3 and >= 0.3.3", optional: true},
+      {:reactor, "~> 0.3 and >= 0.3.4", optional: true},
       # Dev/Test dependencies
       {:ex_doc, github: "elixir-lang/ex_doc", only: [:dev, :test], runtime: false},
       {:ex_check, "~> 0.12", only: [:dev, :test]},
