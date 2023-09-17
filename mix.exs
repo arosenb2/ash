@@ -303,7 +303,8 @@ defmodule Ash.MixProject do
       {:picosat_elixir, "~> 0.2"},
       {:plug, ">= 0.0.0", optional: true},
       {:reactor, "~> 0.3 and >= 0.3.5"},
-      {:spark, "~> 1.1 and >= 1.1.26"},
+      # {:spark, "~> 1.1 and >= 1.1.26"},
+      {:spark, github: "ash-project/spark", branch: "main", override: true},
       {:stream_data, "~> 0.5"},
       {:telemetry, "~> 1.1"},
       # Dev/Test dependencies
