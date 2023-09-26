@@ -304,7 +304,7 @@ create :create_post, MyApp.Post, :create
 ### Options
 | Name | Type | Default | Docs |
 | ---  | ---  | ---     | ---  |
-| `upsert?` | `boolean` | `false` | Wether or not this action is always an upsert. |
+| `upsert?` | `boolean` | `false` | Whether or not this action is always an upsert. |
 | `upsert_identity` | `atom` |  | The identity to use for the upsert. |
 | `short_name` | `String.t` |  | Set a short name for the step. Will be used when building things like mermaid charts. |
 | `wait_for` | ``any`` |  | Ensures that the step happens after the configured step or steps. This is a template who's results are not used, only awaited. |
