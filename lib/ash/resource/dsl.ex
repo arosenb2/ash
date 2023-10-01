@@ -1338,7 +1338,8 @@ defmodule Ash.Resource.Dsl do
     Ash.Resource.Transformers.ValidateEagerIdentities,
     Ash.Resource.Transformers.ValidateAggregatesSupported,
     Ash.Resource.Transformers.ValidateAccept,
-    Ash.Resource.Transformers.GetByReadActions
+    Ash.Resource.Transformers.GetByReadActions,
+    Ash.Resource.Transformers.SetDefineFor
   ]
 
   @verifiers [
@@ -1346,7 +1347,8 @@ defmodule Ash.Resource.Dsl do
     Ash.Resource.Verifiers.VerifyReservedCalculationArguments,
     Ash.Resource.Verifiers.VerifyIdentityFields,
     Ash.Resource.Verifiers.EnsureAggregateFieldIsAttributeOrCalculation,
-    Ash.Resource.Verifiers.ValidateRelationshipAttributes
+    Ash.Resource.Verifiers.ValidateRelationshipAttributes,
+    Ash.Resoource.Verifiers.VerifyAcceptedByApi
   ]
 
   @moduledoc false

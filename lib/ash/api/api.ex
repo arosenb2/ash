@@ -505,11 +505,22 @@ defmodule Ash.Api do
   @doc false
   def aggregate_opts, do: @aggregate_opts
 
+  @type aggregate ::
+          Ash.Query.Aggregate.t()
+          | {name :: atom, kind :: atom}
+          | {name :: atom, kind :: atom, opts :: Keyword.t()}
   @doc """
   Runs an aggregate or aggregates over a resource query
 
   #{Spark.OptionsHelpers.docs(@aggregate_opts)}
   """
+  @spec aggregate(
+          api :: Ash.Api.t(),
+          Ash.Query.t() | Ash.Resource.t(),
+          aggregates :: aggregate | list(aggregate),
+          opts :: Keyword.t()
+        ) ::
+          {:ok, term} | {:error, Ash.Error.t()}
   def aggregate(api, query, aggregate_or_aggregates, opts \\ []) do
     query = Ash.Query.new(query)
     opts = Spark.OptionsHelpers.validate!(opts, @aggregate_opts)
@@ -1036,6 +1047,19 @@ defmodule Ash.Api do
     end
   end
 
+  @callback aggregate(
+              Ash.Query.t(),
+              Ash.Api.aggregate() | list(Ash.Api.aggregate()),
+              opts :: Keyword.t()
+            ) ::
+              {:ok, any} | {:error, Ash.Error.t()}
+
+  @callback aggregate!(
+              Ash.Query.t(),
+              Ash.Api.aggregate() | list(Ash.Api.aggregate()),
+              opts :: Keyword.t()
+            ) ::
+              any | no_return
   @callback count(Ash.Query.t(), opts :: Keyword.t()) :: {:ok, integer} | {:error, Ash.Error.t()}
   @callback count!(Ash.Query.t(), opts :: Keyword.t()) :: integer | no_return
   @doc "Get the first of a given field from the given query"
@@ -1061,14 +1085,14 @@ defmodule Ash.Api do
   @doc "Get the avg of a given field from the given query"
   @callback avg(Ash.Query.t(), field :: atom, opts :: Keyword.t()) ::
               {:ok, term} | {:error, Ash.Error.t()}
+  @doc "Get the avg of a given field from the given query, raising any errors"
+  @callback avg!(Ash.Query.t(), field :: atom, opts :: Keyword.t()) :: term | no_return
   @doc "Wether or not the given query would return any results"
   @callback exists(Ash.Query.t(), opts :: Keyword.t()) ::
               {:ok, boolean} | {:error, Ash.Error.t()}
   @doc "Wether or not the given query would return any results, raising any errors"
   @callback exists?(Ash.Query.t(), opts :: Keyword.t()) ::
               boolean | no_return
-  @doc "Get the avg of a given field from the given query, raising any errors"
-  @callback avg!(Ash.Query.t(), field :: atom, opts :: Keyword.t()) :: term | no_return
   @doc "Get list of a given field from the given query"
   @callback list(Ash.Query.t(), field :: atom, opts :: Keyword.t()) ::
               {:ok, list(term)} | {:error, Ash.Error.t()}
@@ -1150,16 +1174,13 @@ defmodule Ash.Api do
   @callback run_action(input :: Ash.ActionInput.t(), opts :: Keyword.t()) ::
               {:ok, term} | {:error, term}
 
-  @callback calculate!(resource :: Ash.Resource.t(), calculation :: atom, opts :: Keyword.t()) ::
-              term | no_return
-
   @doc """
   Get a record by a primary key. See `c:get/3` for more.
   """
   @callback get!(
               resource :: Ash.Resource.t(),
               id_or_filter :: term(),
-              params :: Keyword.t()
+              opts :: Keyword.t()
             ) ::
               Ash.Resource.record() | no_return
 
@@ -1181,7 +1202,7 @@ defmodule Ash.Api do
   @doc """
   Run an ash query, raising on more than one result. See `c:read_one/2` for more.
   """
-  @callback read_one!(Ash.Query.t() | Ash.Resource.t(), params :: Keyword.t()) ::
+  @callback read_one!(Ash.Query.t() | Ash.Resource.t(), opts :: Keyword.t()) ::
               Ash.Resource.record() | {Ash.Resource.record(), Ash.Query.t()} | nil | no_return
 
   @doc """
@@ -1190,7 +1211,7 @@ defmodule Ash.Api do
   This is useful if you have a query that doesn't include a primary key
   but you know that it will only ever return a single result.
   """
-  @callback read_one(Ash.Query.t() | Ash.Resource.t(), params :: Keyword.t()) ::
+  @callback read_one(Ash.Query.t() | Ash.Resource.t(), opts :: Keyword.t()) ::
               {:ok, Ash.Resource.record()}
               | {:ok, Ash.Resource.record(), Ash.Query.t()}
               | {:ok, nil}
@@ -1198,7 +1219,7 @@ defmodule Ash.Api do
   @doc """
   Run an ash query. See `c:read/2` for more.
   """
-  @callback read!(Ash.Query.t() | Ash.Resource.t(), params :: Keyword.t()) ::
+  @callback read!(Ash.Query.t() | Ash.Resource.t(), opts :: Keyword.t()) ::
               list(Ash.Resource.record())
               | {list(Ash.Resource.record()), Ash.Query.t()}
               | no_return
@@ -1218,7 +1239,7 @@ defmodule Ash.Api do
   #### Keyset pagination
   #{Spark.OptionsHelpers.docs(@keyset_page_opts)}
   """
-  @callback read(Ash.Query.t(), params :: Keyword.t()) ::
+  @callback read(Ash.Query.t(), opts :: Keyword.t()) ::
               {:ok, list(Ash.Resource.record())}
               | {:ok, list(Ash.Resource.record()), Ash.Query.t()}
               | {:error, term}
@@ -1274,7 +1295,7 @@ defmodule Ash.Api do
   @doc """
   Create a record. See `c:create/2` for more information.
   """
-  @callback create!(Ash.Changeset.t(), params :: Keyword.t()) ::
+  @callback create!(Ash.Changeset.t(), opts :: Keyword.t()) ::
               Ash.Resource.record()
               | {Ash.Resource.record(), list(Ash.Notifier.Notification.t())}
               | no_return
@@ -1284,7 +1305,7 @@ defmodule Ash.Api do
 
   #{Spark.OptionsHelpers.docs(@create_opts_schema)}
   """
-  @callback create(Ash.Changeset.t(), params :: Keyword.t()) ::
+  @callback create(Ash.Changeset.t(), opts :: Keyword.t()) ::
               {:ok, Ash.Resource.record()}
               | {:ok, Ash.Resource.record(), list(Ash.Notifier.Notification.t())}
               | {:error, term}
@@ -1339,7 +1360,7 @@ defmodule Ash.Api do
               [map],
               resource :: Ash.Resource.t(),
               action :: atom,
-              params :: Keyword.t()
+              opts :: Keyword.t()
             ) ::
               Ash.BulkResult.t()
               | Enumerable.t(
@@ -1357,14 +1378,14 @@ defmodule Ash.Api do
               [map],
               resource :: Ash.Resource.t(),
               action :: atom,
-              params :: Keyword.t()
+              opts :: Keyword.t()
             ) ::
               Ash.BulkResult.t() | no_return()
 
   @doc """
   Update a record. See `c:update/2` for more information.
   """
-  @callback update!(Ash.Changeset.t(), params :: Keyword.t()) ::
+  @callback update!(Ash.Changeset.t(), opts :: Keyword.t()) ::
               Ash.Resource.record()
               | {Ash.Resource.record(), list(Ash.Notifier.Notification.t())}
               | no_return
@@ -1374,7 +1395,7 @@ defmodule Ash.Api do
 
   #{Spark.OptionsHelpers.docs(@update_opts_schema)}
   """
-  @callback update(Ash.Changeset.t(), params :: Keyword.t()) ::
+  @callback update(Ash.Changeset.t(), opts :: Keyword.t()) ::
               {:ok, Ash.Resource.record()}
               | {:ok, Ash.Resource.record(), list(Ash.Notifier.Notification.t())}
               | {:error, term}
@@ -1382,7 +1403,7 @@ defmodule Ash.Api do
   @doc """
   Destroy a record. See `c:destroy/2` for more information.
   """
-  @callback destroy!(Ash.Changeset.t() | Ash.Resource.record(), params :: Keyword.t()) ::
+  @callback destroy!(Ash.Changeset.t() | Ash.Resource.record(), opts :: Keyword.t()) ::
               :ok
               | Ash.Resource.record()
               | list(Ash.Notifier.Notification.t())
@@ -1394,7 +1415,7 @@ defmodule Ash.Api do
 
   #{Spark.OptionsHelpers.docs(@destroy_opts_schema)}
   """
-  @callback destroy(Ash.Changeset.t() | Ash.Resource.record(), params :: Keyword.t()) ::
+  @callback destroy(Ash.Changeset.t() | Ash.Resource.record(), opts :: Keyword.t()) ::
               :ok
               | {:ok, Ash.Resource.record()}
               | {:ok, list(Ash.Notifier.Notification.t())}
