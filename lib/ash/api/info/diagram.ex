@@ -137,6 +137,7 @@ defmodule Ash.Api.Info.Diagram do
       case action do
         %{type: :read} -> []
         %{type: :destroy, soft?: false} -> []
+        %{type: :action} -> []
         %{accept: accept} -> accept |> Enum.map(&Ash.Resource.Info.attribute(resource, &1))
       end
 
